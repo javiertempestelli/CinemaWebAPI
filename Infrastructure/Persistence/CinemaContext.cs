@@ -5,7 +5,9 @@ namespace ProyectoCinema;
 
 public class CinemaContext : DbContext
 {
-
+    public CinemaContext(DbContextOptions<CinemaContext> options) : base(options)
+    {
+    }
 
     public DbSet<Genero> Generos { get; set; }
     public DbSet<Pelicula> Peliculas { get; set; }
