@@ -50,30 +50,6 @@ namespace CinemaWebAPI.Controllers
             return ticket;
         }
 
-        // POST: api/Tickets
-        [HttpPost]
-        public async Task<ActionResult<TicketDTO>> PostTicket(TicketDTO ticketDTO)
-        {
-            if (_context.Tickets == null)
-            {
-                return Problem("Entity set 'CinemaContext.Tickets' is null.");
-            }
-
-            // Aquí puedes agregar lógica para verificar la disponibilidad de boletos, validar datos, etc.
-
-            var ticket = new Ticket
-            {
-                FuncionId = ticketDTO.FuncionId,
-                Usuario = ticketDTO.Usuario
-            };
-
-            _context.Tickets.Add(ticket);
-            await _context.SaveChangesAsync();
-
-            // Puedes mapear el ticket a un TicketDTO si es necesario
-
-            return CreatedAtAction("GetTicket", new { id = ticket.TicketId }, ticketDTO);
-        }
 
         // POST: api/Tickets/{id}/tickets
         [HttpPost("{id}/tickets")]
@@ -86,8 +62,15 @@ namespace CinemaWebAPI.Controllers
             {
                 return NotFound("Función no encontrada.");
             }
+            var sala = await _context.Salas.FindAsync(funcion.SalaId);
+            // Verifica cuántos boletos se han vendido para esta función
+            int boletosVendidos = await _context.Tickets.CountAsync(t => t.FuncionId == id);
 
-            // Aquí puedes agregar lógica adicional para verificar la disponibilidad de boletos, validar datos, etc.
+            // Verifica si no hay boletos disponibles (todos los boletos han sido vendidos)
+            if (boletosVendidos >= sala.Capacidad)
+            {
+                return BadRequest("No hay boletos disponibles para esta función.");
+            }
 
             var ticket = new Ticket
             {
@@ -99,9 +82,18 @@ namespace CinemaWebAPI.Controllers
             await _context.SaveChangesAsync();
 
             // Puedes mapear el ticket a un TicketDTO si es necesario
+            var ticketResponse = new TicketDTO
+            {
+                TicketId = ticket.TicketId,
+                FuncionId = ticket.FuncionId,
+                Usuario = ticket.Usuario
+                // Agregar otros campos si es necesario
+            };
 
-            return CreatedAtAction("GetTicket", new { id = ticket.TicketId }, ticketDTO);
+            return CreatedAtAction("GetTicket", new { id = ticket.TicketId }, ticketResponse);
         }
+
+
 
         // DELETE: api/Tickets/5
         [HttpDelete("{id}")]

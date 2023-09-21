@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProyectoCinema;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -21,42 +22,54 @@ namespace CinemaWebAPI.Controllers
         public async Task<ActionResult<IEnumerable<PeliculaDTO>>> GetPeliculas()
         {
             var peliculas = await _context.Peliculas
-                .Select(p => new PeliculaDTO
-                {
-//                    PeliculaId = p.PeliculaId,
-                    Titulo = p.Titulo,
-                    Poster = p.Poster,
-                    Trailer = p.Trailer,
-                    Sonopsis = p.Sonopsis
-                })
+                .Join(
+                    _context.Generos,
+                    p => p.GeneroId,
+                    g => g.GeneroId,
+                    (p, g) => new PeliculaDTO
+                    {
+                        Titulo = p.Titulo,
+                        Poster = p.Poster,
+                        Trailer = p.Trailer,
+                        Sonopsis = p.Sonopsis,
+                        GeneroNombre = g.Nombre
+                    }
+                )
                 .ToListAsync();
 
             return peliculas;
         }
 
+
         // GET: api/Peliculas/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PeliculaDTO>> GetPelicula(int id)
         {
-            var pelicula = await _context.Peliculas
-                .Where(p => p.PeliculaId == id)
-                .Select(p => new PeliculaDTO
-                {
-//                    PeliculaId = p.PeliculaId,
-                    Titulo = p.Titulo,
-                    Poster = p.Poster,
-                    Trailer = p.Trailer,
-                    Sonopsis = p.Sonopsis
-                    // Mapear otros campos DTO aquí
-                })
-                .FirstOrDefaultAsync();
-
+            var pelicula = await _context.Peliculas.FindAsync(id);
+            
             if (pelicula == null)
             {
                 return NotFound();
             }
+            var genero = await _context.Generos.FindAsync(pelicula.GeneroId);
+            var peliculaDTO = await _context.Peliculas
+                .Where(p => p.PeliculaId == id)
+                .Select(p => new PeliculaDTO
+                {
+                    PeliculaId = p.PeliculaId,
+                    Titulo = p.Titulo,
+                    Poster = p.Poster,
+                    Trailer = p.Trailer,
+                    Sonopsis = p.Sonopsis,
+                    GeneroNombre = genero.Nombre
 
-            return pelicula;
+                    // Mapear otros campos DTO aquí
+                })
+                .FirstOrDefaultAsync();
+
+
+
+            return peliculaDTO;
         }
 
         // PUT: api/Peliculas/5/Titulo
@@ -73,6 +86,14 @@ namespace CinemaWebAPI.Controllers
             if (pelicula == null)
             {
                 return NotFound();
+            }
+
+            // Verificar si ya existe una película con el nuevo título
+            var existeOtraPeliculaConMismoTitulo = await _context.Peliculas.AnyAsync(p => p.Titulo == nuevoTitulo);
+
+            if (existeOtraPeliculaConMismoTitulo)
+            {
+                return BadRequest("Ya existe una película con el mismo título.");
             }
 
             pelicula.Titulo = nuevoTitulo;
@@ -97,6 +118,7 @@ namespace CinemaWebAPI.Controllers
 
             return NoContent();
         }
+
 
         // PUT: api/Peliculas/5/Poster
         [HttpPut("{id}/Poster")]

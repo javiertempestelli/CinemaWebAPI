@@ -1,11 +1,4 @@
-﻿using ProyectoCinema;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Application.DTOs
 {
@@ -13,9 +6,15 @@ namespace Application.DTOs
     {
         [JsonIgnore]
         public int FuncionId { get; set; }
+
+        [JsonIgnore]
         public int SalaId { get; set; }
+        public string SalaNombre { get; set; }
         public DateTime Fecha { get; set; }
         public DateTime Horario { get; set; }
+
+        [JsonIgnore]
         public int PeliculaId { get; set; }
+        public string PeliculaTitulo { get; set; }
     }
 }
