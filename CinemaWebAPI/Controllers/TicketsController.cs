@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.DTOs;
-using Microsoft.AspNetCore.Http;
+using Application.DTOs.Ticket;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProyectoCinema;
@@ -23,14 +23,24 @@ namespace CinemaWebAPI.Controllers
 
         // GET: api/Tickets
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
+        public async Task<ActionResult<IEnumerable<TicketGETALL>>> GetTickets()
         {
-            if (_context.Tickets == null)
-            {
-                return NotFound();
-            }
-            return await _context.Tickets.ToListAsync();
+            var tickets = await _context.Tickets
+                .Include(ticket => ticket.Funcion) // Incluye la relación con Funcion
+                .ThenInclude(funcion => funcion.Pelicula) // Incluye la relación con Pelicula dentro de Funcion
+                .Select(ticket => new TicketGETALL
+                {
+                    TicketId = ticket.TicketId,
+                    FuncionId = ticket.FuncionId,
+                    Usuario = ticket.Usuario,
+                    PeliculaTitulo = ticket.Funcion.Pelicula.Titulo
+                })
+                .ToListAsync();
+
+            return tickets;
         }
+
+
 
         // GET: api/Tickets/5
         [HttpGet("{id}")]
@@ -53,7 +63,7 @@ namespace CinemaWebAPI.Controllers
 
         // POST: api/Tickets/{id}/tickets
         [HttpPost("{id}/tickets")]
-        public async Task<ActionResult<TicketDTO>> ComprarTickets(int id, TicketDTO ticketDTO)
+        public async Task<ActionResult<TicketPOST>> ComprarTickets(int id, TicketPOST ticketDTO)
         {
             // Verifica si la función existe
             var funcion = await _context.Funciones.FindAsync(id);
@@ -82,7 +92,7 @@ namespace CinemaWebAPI.Controllers
             await _context.SaveChangesAsync();
 
             // Puedes mapear el ticket a un TicketDTO si es necesario
-            var ticketResponse = new TicketDTO
+            var ticketResponse = new TicketPOST
             {
                 TicketId = ticket.TicketId,
                 FuncionId = ticket.FuncionId,
@@ -115,9 +125,6 @@ namespace CinemaWebAPI.Controllers
             return NoContent();
         }
 
-        private bool TicketExists(Guid id)
-        {
-            return (_context.Tickets?.Any(e => e.TicketId == id)).GetValueOrDefault();
-        }
+
     }
 }

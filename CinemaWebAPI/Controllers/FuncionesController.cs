@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProyectoCinema;
-using Application.DTOs;
 using Infrastructure.Queries;
+using Application.DTOs.Funcion;
+using Application.DTOs;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -19,18 +21,20 @@ namespace CinemaWebAPI.Controllers
 
         // GET: api/Funciones
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FuncionDTO>>> GetFunciones()
+        public async Task<ActionResult<IEnumerable<FuncionGETALL>>> GetFunciones()
         {
+
             var funciones = await _context.Funciones
                 .Include(f => f.Sala) // Cargar la relación con la tabla Sala
                 .Include(f => f.Pelicula) // Cargar la relación con la tabla Película
-                .Select(f => new FuncionDTO
-                {
-                    SalaNombre = f.Sala.Nombre,
+            .Select(f => new FuncionGETALL
+            {
+                    FuncionId = f.FuncionId,
+                    SalaNombre= f.Sala.Nombre,
                     Fecha = f.Fecha,
                     Horario = f.Horario,
                     PeliculaTitulo = f.Pelicula.Titulo
-                })
+            })
                 .ToListAsync();
 
             return funciones;
@@ -39,7 +43,7 @@ namespace CinemaWebAPI.Controllers
 
         // GET: api/Funciones/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<FuncionDTO>> GetFuncion(int id)
+        public async Task<ActionResult<FuncionGET>> GetFuncion(int id)
         {
             var funcion = await _context.Funciones.FindAsync(id);
 
@@ -47,20 +51,17 @@ namespace CinemaWebAPI.Controllers
             {
                 return NotFound();
             }
-            var sala = await _context.Salas.FindAsync(funcion.SalaId); // Obtén la sala correspondiente
+            var sala = await _context.Salas.FindAsync(funcion.SalaId);
             var pelicula = await _context.Peliculas.FindAsync(funcion.PeliculaId);
-
-            var funcionDTO = new FuncionDTO
+            var funcionGET = new FuncionGET
             {
-                SalaId = funcion.SalaId,
-                SalaNombre = sala != null ? sala.Nombre : "No existe la sala",
+                SalaNombre = sala.Nombre,
                 Fecha = funcion.Fecha,
                 Horario = funcion.Horario,
-                PeliculaId = funcion.PeliculaId,
-                PeliculaTitulo = pelicula != null ? pelicula.Titulo : "No existe la pelicula"
+                PeliculaTitulo = pelicula.Titulo
             };
 
-            return funcionDTO;
+            return funcionGET;
         }
 
         // PUT: api/Funciones/5
@@ -122,14 +123,15 @@ namespace CinemaWebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<FuncionDTO>> PostFuncion(FuncionDTO funcionDTO)
+        public async Task<ActionResult<FuncionDTO>> PostFuncion(FuncionPOST funcionPOST)
         {
+            
             var funcion = new Funcion
             {
-                SalaId = funcionDTO.SalaId,
-                Fecha = funcionDTO.Fecha,
-                Horario = funcionDTO.Horario,
-                PeliculaId = funcionDTO.PeliculaId
+                SalaId = funcionPOST.SalaId,
+                Fecha = funcionPOST.Fecha,
+                Horario = funcionPOST.Horario,
+                PeliculaId = funcionPOST.PeliculaId
             };
 
             _context.Funciones.Add(funcion);
@@ -137,33 +139,9 @@ namespace CinemaWebAPI.Controllers
 
             // Resto del código para crear la respuesta...
 
-            return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionDTO);
+            return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionPOST);
         }
 
-
-        //[HttpPost]
-        //public async Task<ActionResult<FuncionDTO>> Post2Funcion(FuncionDTO funcionDTO)
-        //{
-        //    if (funcionDTO == null)
-        //    {
-        //        return BadRequest("El objeto funcionDTO es nulo.");
-        //    }
-
-        //    // Mapea los campos de funcionDTO a la entidad Funcion.
-        //    var funcion = new Funcion
-        //    {
-        //        SalaId = funcionDTO.SalaId,
-        //        Fecha = DateTime.Parse(funcionDTO.Fecha.ToString("yyyy-MM-dd")),
-        //        Horario = DateTime.Parse(funcionDTO.Horario.ToString("HH:mm:ss")),
-        //        PeliculaId = funcionDTO.PeliculaId
-        //    };
-
-        //    _context.Funciones.Add(funcion);
-        //    await _context.SaveChangesAsync();
-
-
-        //    return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionDTO);
-        //}
 
         // DELETE: api/Funciones/5
         [HttpDelete("{id}")]
