@@ -125,7 +125,21 @@ namespace CinemaWebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<FuncionDTO>> PostFuncion(FuncionPOST funcionPOST)
         {
-            
+            // Verifica si hay funciones existentes en la misma sala que se superponen en tiempo
+            DateTime nuevaFuncionInicio = funcionPOST.Horario; // Corrección aquí
+            DateTime nuevaFuncionFin = nuevaFuncionInicio.AddMinutes(150); // 2 horas y 30 minutos
+
+            bool superposicion = await _context.Funciones
+                .AnyAsync(f =>
+                    f.SalaId == funcionPOST.SalaId &&
+                    f.Fecha.Date == funcionPOST.Fecha.Date && // Mismo día
+                    f.Horario <= nuevaFuncionFin && f.Horario.AddMinutes(150) >= nuevaFuncionInicio); // Superposición de horarios
+
+            if (superposicion)
+            {
+                return BadRequest("La nueva función se superpone con otra función en la misma sala.");
+            }
+
             var funcion = new Funcion
             {
                 SalaId = funcionPOST.SalaId,
@@ -137,11 +151,17 @@ namespace CinemaWebAPI.Controllers
             _context.Funciones.Add(funcion);
             await _context.SaveChangesAsync();
 
-            // Resto del código para crear la respuesta...
+            // Devuelve la función creada
+            var funcionDTO = new FuncionDTO
+            {
+                SalaId = funcion.SalaId,
+                Fecha = funcion.Fecha,
+                Horario = funcion.Horario,
+                PeliculaId = funcion.PeliculaId
+            };
 
-            return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionPOST);
+            return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionDTO);
         }
-
 
         // DELETE: api/Funciones/5
         [HttpDelete("{id}")]
