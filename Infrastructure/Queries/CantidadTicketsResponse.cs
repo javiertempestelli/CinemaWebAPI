@@ -8,7 +8,7 @@ namespace Infrastructure.Queries
 {
     public class CantidadTicketsResponse
     {
-        public int Cantidad { get; set; }
+        public int CantidadDisponible { get; set; }
     }
 
 }

@@ -110,13 +110,13 @@ namespace CinemaWebAPI.Controllers
             {
                 return NotFound(); // La función con el ID proporcionado no existe.
             }
-            var sala = await _context.Salas.FindAsync(funcion.SalaId); // Obtén la sala correspondiente
-            int cantidadTickets = await _context.Tickets.CountAsync(t => t.FuncionId == id);
-            int cantidadDisponible = sala.Capacidad - cantidadTickets;
+            var sala = await _context.Salas.FindAsync(funcion.SalaId);
+            int cantidadTicketsPorFuncion = await _context.Tickets.CountAsync(t => t.FuncionId == id);
+            int cantidadDisponible = sala.Capacidad - cantidadTicketsPorFuncion;
 
             var cantidadTicketsResponse = new CantidadTicketsResponse
             {
-                Cantidad = cantidadDisponible
+                CantidadDisponible = cantidadDisponible
             };
 
             return cantidadTicketsResponse;
@@ -167,6 +167,51 @@ namespace CinemaWebAPI.Controllers
 
             return NoContent();
         }
+        [HttpGet("disponibles")]
+        public async Task<ActionResult<IEnumerable<FuncionDTO>>> GetFuncionesDisponibles(
+            [FromQuery] DateTime? fecha,
+            [FromQuery] int? peliculaId,
+            [FromQuery] int? generoId)
+        {
+            var query = _context.Funciones.AsQueryable();
+
+            // Aplica los filtros según los parámetros proporcionados.
+            if (fecha.HasValue)
+            {
+                // Filtra por fecha.
+                query = query.Where(f => f.Fecha.Date == fecha.Value.Date);
+            }
+
+            if (peliculaId.HasValue)
+            {
+                // Filtra por ID de película.
+                query = query.Where(f => f.PeliculaId == peliculaId.Value);
+            }
+
+            if (generoId.HasValue)
+            {
+                // Filtra por género de película.
+                query = query.Where(f => f.Pelicula.GeneroId == generoId.Value);
+            }
+
+            // Proyecta el resultado en FuncionDTO u otro DTO personalizado si es necesario.
+            var funcionesDTO = await query
+                .Select(f => new FuncionDTO
+                {
+                    SalaId = f.SalaId,
+                    Fecha = f.Fecha,
+                    Horario = f.Horario,
+                    PeliculaId = f.PeliculaId
+                })
+                .ToListAsync();
+
+            if (funcionesDTO.Count == 0)
+            {
+                return NotFound("No existen funciones disponibles para los criterios solicitados.");
+            }
+            return funcionesDTO;
+        }
+
 
 
         private bool FuncionExists(int id)

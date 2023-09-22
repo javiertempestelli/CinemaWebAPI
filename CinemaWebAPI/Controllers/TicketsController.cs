@@ -43,22 +43,22 @@ namespace CinemaWebAPI.Controllers
 
 
         // GET: api/Tickets/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Ticket>> GetTicket(Guid id)
-        {
-            if (_context.Tickets == null)
-            {
-                return NotFound();
-            }
-            var ticket = await _context.Tickets.FindAsync(id);
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<Ticket>> GetTicket(Guid id)
+        //{
+        //    if (_context.Tickets == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    var ticket = await _context.Tickets.FindAsync(id);
 
-            if (ticket == null)
-            {
-                return NotFound();
-            }
+        //    if (ticket == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            return ticket;
-        }
+        //    return ticket;
+        //}
 
 
         // POST: api/Tickets/{id}/tickets
@@ -84,7 +84,6 @@ namespace CinemaWebAPI.Controllers
 
             var ticket = new Ticket
             {
-                FuncionId = id,
                 Usuario = ticketDTO.Usuario
             };
 
