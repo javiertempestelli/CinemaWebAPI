@@ -63,7 +63,6 @@ namespace CinemaWebAPI.Controllers
             return funcionGET;
         }
 
-        // PUT: api/Funciones/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutFuncion(int id, FuncionDTO funcionDTO)
         {
@@ -162,7 +161,6 @@ namespace CinemaWebAPI.Controllers
             return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionDTO);
         }
 
-        // DELETE: api/Funciones/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFuncion(int id)
         {
@@ -195,7 +193,7 @@ namespace CinemaWebAPI.Controllers
         {
             var query = _context.Funciones.AsQueryable();
 
-            // Aplica los filtros según los parámetros proporcionados.
+            // Aplica los filtros opcionales.
             if (fecha.HasValue)
             {
                 // Filtra por fecha.
@@ -215,18 +213,18 @@ namespace CinemaWebAPI.Controllers
             }
             
             var funcionesGET = await query
-        .Include(f => f.Sala) // Cargar la relación con la tabla Sala
-        .Include(f => f.Pelicula) // Cargar la relación con la tabla Película
+        .Include(f => f.Sala) // Carga la relación con la tabla Sala
+        .Include(f => f.Pelicula) // Carga la relación con la tabla Película
         .Select(f => new FuncionGET
         {
             SalaNombre = f.Sala.Nombre,
-            Fecha = f.Fecha.Date.ToString("yyyy-MM-dd"),
-            Horario = f.Horario.TimeOfDay.ToString(@"hh\:mm"),
+            Fecha = f.Fecha.Date.ToString("yyyy-MM-dd"), //Se convierte a formato yyyy-mm-dd el datetime en un string
+            Horario = f.Horario.TimeOfDay.ToString(@"hh\:mm"),//Se convierte a formato hh:mm el datetime en un string
             PeliculaTitulo = f.Pelicula.Titulo
         })
         .ToListAsync();
 
-            if (funcionesGET.Count == 0)
+            if (funcionesGET.Count == 0) //Si la lista está vacía, devuelvo que la busqueda no trajo funciones
             {
                 return NotFound("No existen funciones disponibles para los criterios solicitados.");
             }

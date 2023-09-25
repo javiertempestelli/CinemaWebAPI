@@ -55,7 +55,6 @@ namespace CinemaWebAPI.Controllers
                 .Where(p => p.PeliculaId == id)
                 .Select(p => new PeliculaGET
                 {
-                    PeliculaId = p.PeliculaId,
                     Titulo = p.Titulo,
                     Poster = p.Poster,
                     Trailer = p.Trailer,
