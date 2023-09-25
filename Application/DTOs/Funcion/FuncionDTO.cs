@@ -8,15 +8,8 @@ namespace Application.DTOs.Funcion
         public int FuncionId { get; set; }
 
         public int SalaId { get; set; }
-        //        [JsonIgnore]
-
-        //        public string SalaNombre { get; set; }
         public DateTime Fecha { get; set; }
         public DateTime Horario { get; set; }
-
-
         public int PeliculaId { get; set; }
-        //        [JsonIgnore]
-        //        public string PeliculaTitulo { get; set; }
     }
 }

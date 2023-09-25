@@ -6,7 +6,7 @@ using Application.DTOs;
 using Application.DTOs.Ticket;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProyectoCinema;
+using CinemaWebAPI;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -41,29 +41,9 @@ namespace CinemaWebAPI.Controllers
         }
 
 
-
-        // GET: api/Tickets/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Ticket>> GetTicket(Guid id)
-        //{
-        //    if (_context.Tickets == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var ticket = await _context.Tickets.FindAsync(id);
-
-        //    if (ticket == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return ticket;
-        //}
-
-
         // POST: api/Tickets/{id}/tickets
         [HttpPost("{id}/tickets")]
-        public async Task<ActionResult<TicketPOST>> ComprarTickets(int id, TicketPOST ticketDTO)
+        public async Task<ActionResult<TicketPOST>> ComprarTickets(int id, TicketPOST ticketPOST)
         {
             // Verifica si la función existe
             var funcion = await _context.Funciones.FindAsync(id);
@@ -84,7 +64,7 @@ namespace CinemaWebAPI.Controllers
 
             var ticket = new Ticket
             {
-                Usuario = ticketDTO.Usuario
+                Usuario = ticketPOST.Usuario
             };
 
             _context.Tickets.Add(ticket);

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ProyectoCinema;
+using CinemaWebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 

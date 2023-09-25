@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Application.DTOs.Pelicula
+namespace CinemaWebAPI.Application.DTOs.Pelicula
 {
     public class PeliculaGET
     {

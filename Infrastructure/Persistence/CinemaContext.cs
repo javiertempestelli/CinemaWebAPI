@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-namespace ProyectoCinema;
+namespace CinemaWebAPI;
 
 
 

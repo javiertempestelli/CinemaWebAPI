@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProyectoCinema;
 using Infrastructure.Queries;
 using Application.DTOs.Funcion;
 using Application.DTOs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -31,15 +31,14 @@ namespace CinemaWebAPI.Controllers
             {
                     FuncionId = f.FuncionId,
                     SalaNombre= f.Sala.Nombre,
-                    Fecha = f.Fecha,
-                    Horario = f.Horario,
-                    PeliculaTitulo = f.Pelicula.Titulo
+                    Fecha = f.Fecha.Date.ToString("yyyy-MM-dd"),
+                    Horario = f.Horario.TimeOfDay.ToString(@"hh\:mm"),
+                PeliculaTitulo = f.Pelicula.Titulo
             })
                 .ToListAsync();
 
             return funciones;
         }
-
 
         // GET: api/Funciones/5
         [HttpGet("{id}")]
@@ -56,8 +55,8 @@ namespace CinemaWebAPI.Controllers
             var funcionGET = new FuncionGET
             {
                 SalaNombre = sala.Nombre,
-                Fecha = funcion.Fecha,
-                Horario = funcion.Horario,
+                Fecha = funcion.Fecha.Date.ToString("yyyy-MM-dd"),
+                Horario = funcion.Horario.TimeOfDay.ToString(@"hh\:mm"),
                 PeliculaTitulo = pelicula.Titulo
             };
 
@@ -187,8 +186,9 @@ namespace CinemaWebAPI.Controllers
 
             return NoContent();
         }
+
         [HttpGet("disponibles")]
-        public async Task<ActionResult<IEnumerable<FuncionDTO>>> GetFuncionesDisponibles(
+        public async Task<ActionResult<IEnumerable<FuncionGET>>> GetFuncionesDisponibles(
             [FromQuery] DateTime? fecha,
             [FromQuery] int? peliculaId,
             [FromQuery] int? generoId)
@@ -213,28 +213,31 @@ namespace CinemaWebAPI.Controllers
                 // Filtra por género de película.
                 query = query.Where(f => f.Pelicula.GeneroId == generoId.Value);
             }
+            
+            var funcionesGET = await query
+        .Include(f => f.Sala) // Cargar la relación con la tabla Sala
+        .Include(f => f.Pelicula) // Cargar la relación con la tabla Película
+        .Select(f => new FuncionGET
+        {
+            SalaNombre = f.Sala.Nombre,
+            Fecha = f.Fecha.Date.ToString("yyyy-MM-dd"),
+            Horario = f.Horario.TimeOfDay.ToString(@"hh\:mm"),
+            PeliculaTitulo = f.Pelicula.Titulo
+        })
+        .ToListAsync();
 
-            // Proyecta el resultado en FuncionDTO u otro DTO personalizado si es necesario.
-            var funcionesDTO = await query
-                .Select(f => new FuncionDTO
-                {
-                    SalaId = f.SalaId,
-                    Fecha = f.Fecha,
-                    Horario = f.Horario,
-                    PeliculaId = f.PeliculaId
-                })
-                .ToListAsync();
-
-            if (funcionesDTO.Count == 0)
+            if (funcionesGET.Count == 0)
             {
                 return NotFound("No existen funciones disponibles para los criterios solicitados.");
             }
-            return funcionesDTO;
+
+            return funcionesGET;
+        
         }
 
 
 
-        private bool FuncionExists(int id)
+    private bool FuncionExists(int id)
         {
             return _context.Funciones.Any(e => e.FuncionId == id);
         }

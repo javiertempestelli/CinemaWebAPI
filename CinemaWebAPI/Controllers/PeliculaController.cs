@@ -1,8 +1,7 @@
 ﻿using Application.DTOs.Pelicula;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProyectoCinema;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using CinemaWebAPI.Application.DTOs.Pelicula;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -19,14 +18,14 @@ namespace CinemaWebAPI.Controllers
 
         // GET: api/Peliculas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PeliculaDTO>>> GetPeliculas()
+        public async Task<ActionResult<IEnumerable<PeliculaGET>>> GetPeliculas()
         {
             var peliculas = await _context.Peliculas
                 .Join(
                     _context.Generos,
                     p => p.GeneroId,
                     g => g.GeneroId,
-                    (p, g) => new PeliculaDTO
+                    (p, g) => new PeliculaGET
                     {
                         Titulo = p.Titulo,
                         Poster = p.Poster,
@@ -43,7 +42,7 @@ namespace CinemaWebAPI.Controllers
 
         // GET: api/Peliculas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PeliculaDTO>> GetPelicula(int id)
+        public async Task<ActionResult<PeliculaGET>> GetPelicula(int id)
         {
             var pelicula = await _context.Peliculas.FindAsync(id);
             
@@ -54,7 +53,7 @@ namespace CinemaWebAPI.Controllers
             var genero = await _context.Generos.FindAsync(pelicula.GeneroId);
             var peliculaDTO = await _context.Peliculas
                 .Where(p => p.PeliculaId == id)
-                .Select(p => new PeliculaDTO
+                .Select(p => new PeliculaGET
                 {
                     PeliculaId = p.PeliculaId,
                     Titulo = p.Titulo,
@@ -236,32 +235,41 @@ namespace CinemaWebAPI.Controllers
 
             return NoContent();
         }
-
         // POST: api/Peliculas
         [HttpPost]
-        public async Task<ActionResult<PeliculaDTO>> PostPelicula(PeliculaDTO peliculaDTO)
+        public async Task<ActionResult<PeliculaPOST>> PostPelicula(PeliculaPOST peliculaPOST)
         {
+            // Verificar si ya existe una película con el mismo título
+            bool peliculaExists = await _context.Peliculas.AnyAsync(p => p.Titulo == peliculaPOST.Titulo);
+
+            if (peliculaExists)
+            {
+                return BadRequest("Ya existe una película con el mismo título.");
+            }
+
             var pelicula = new Pelicula
             {
-                Titulo = peliculaDTO.Titulo,
-                // Asigna otros valores desde el DTO aquí
+                Titulo = peliculaPOST.Titulo,
+                Poster = peliculaPOST.Poster,
+                Trailer = peliculaPOST.Trailer,
+                Sonopsis = peliculaPOST.Sonopsis,
+                GeneroId = peliculaPOST.GeneroId
             };
 
             _context.Peliculas.Add(pelicula);
             await _context.SaveChangesAsync();
 
             // Crea un nuevo DTO con el ID generado y otros campos
-            var newPeliculaDTO = new PeliculaDTO
+            var newPeliculaPOST = new PeliculaPOST
             {
                 Titulo = pelicula.Titulo,
                 Poster = pelicula.Poster,
                 Trailer = pelicula.Trailer,
-                Sonopsis = pelicula.Sonopsis
-
-                // Mapea otros campos DTO aquí
+                Sonopsis = pelicula.Sonopsis,
+                GeneroId = pelicula.GeneroId
             };
 
-            return CreatedAtAction("GetPelicula", new { id = newPeliculaDTO.PeliculaId }, newPeliculaDTO);
+            return CreatedAtAction("GetPelicula", new { id = newPeliculaPOST.PeliculaId }, newPeliculaPOST);
         }
 
         // DELETE: api/Peliculas/5
