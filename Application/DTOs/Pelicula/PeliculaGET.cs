@@ -6,7 +6,7 @@
         public string Sonopsis { get; set; }
         public string Trailer { get; set; }
         public string Poster { get; set; }
-        public string GeneroNombre { get; set; }
+        public int GeneroId { get; set; }
     }
 
 }
