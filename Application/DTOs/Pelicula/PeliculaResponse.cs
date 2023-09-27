@@ -1,4 +1,4 @@
-﻿namespace CinemaWebAPI.Controllers
+﻿namespace CinemaWebAPI.Application.DTOs
 {
     public class PeliculaResponse
     {

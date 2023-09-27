@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Queries;
-using Application.DTOs.Funcion;
+using CinemaWebAPI.Application.DTOs;
 using Application.DTOs;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System;
 
 namespace CinemaWebAPI.Controllers
 {
@@ -200,7 +198,6 @@ namespace CinemaWebAPI.Controllers
 
             return CreatedAtAction("GetFuncion", new { id = funcion.FuncionId }, funcionResponse);
         }
-
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFuncion(int id)

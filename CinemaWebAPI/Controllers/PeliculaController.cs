@@ -1,4 +1,5 @@
-﻿using CinemaWebAPI.Application.DTOs.Pelicula;
+﻿using CinemaWebAPI.Application.DTOs;
+using CinemaWebAPI.Application.DTOs.Pelicula;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
